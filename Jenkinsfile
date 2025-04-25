@@ -1,65 +1,36 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'flask-app'
-        DOCKER_TAG = 'latest'
-        DOCKER_REGISTRY = 'docker.io'
-    }
-
     stages {
-        stage('Checkout') {
+        stage('Clone Repo') {
             steps {
-                script {
-                    // Checkout the Git repository
-                    git 'git@github.com:SreelekhaB77/sample_Flask_app_2025.git'
-                }
+                git credentialsId: 'github-ssh', url: 'git@github.com:SreelekhaB77/sample_Flask_app_2025.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    // Use the Docker Pipeline plugin to build the Docker image
-                    docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_TAG}")
-                }
+                sh 'docker build -t flask-app .'
             }
         }
 
-        stage('Stop Existing Container') {
+        stage('Stop Old Container') {
             steps {
-                script {
-                    // Stop the existing container if running
-                    sh 'docker stop flask || true && docker rm flask || true'
-                }
+                sh 'docker stop flask || true'
+                sh 'docker rm flask || true'
             }
         }
 
         stage('Run New Container') {
             steps {
-                script {
-                    // Run the new Docker container using the image built in the previous stage
-                    docker.run("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_TAG}", '-d -p 5000:5000 --name flask')
-                }
+                sh 'docker run -d --name flask -p 5000:5000 flask-app'
             }
         }
 
         stage('Reload NGINX') {
             steps {
-                script {
-                    // Reload NGINX to apply any changes
-                    sh 'sudo systemctl reload nginx'
-                }
+                sh 'echo "yourpassword" | sudo -S systemctl reload nginx'
             }
-        }
-    }
-
-    post {
-        always {
-            // Cleanup and finalize the build
-            echo 'Cleaning up...'
-            // Stop and remove the container after the job is finished
-            sh 'docker stop flask || true && docker rm flask || true'
         }
     }
 }
