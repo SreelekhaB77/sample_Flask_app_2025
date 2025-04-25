@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git credentialsId: 'github-ssh', url: 'git@github.com:SreelekhaB77/sample_Flask_app_2025.git'
+                git credentialsId: 'github-ssh1', url: 'git@github.com:SreelekhaB77/sample_Flask_app_2025.git'
             }
         }
 
